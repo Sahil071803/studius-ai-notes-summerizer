@@ -49,8 +49,8 @@ const summarizeText = async (req, res, next) => {
       response?.data?.choices?.[0]?.message?.content ||
       "No summary generated";
 
-    // 💾 SAVE HISTORY (FIXED ✅)
     await History.create({
+      userId: req.user,
       text: inputText,
       summary,
       type: "summary",

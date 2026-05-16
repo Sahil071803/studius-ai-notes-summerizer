@@ -30,12 +30,10 @@ const scoreSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// 🔥 Auto calculate percentage
-scoreSchema.pre("save", function (next) {
+scoreSchema.pre("save", function () {
   if (this.totalQuestions > 0) {
-    this.percentage = ((this.score / this.totalQuestions) * 100).toFixed(2);
+    this.percentage = Math.round((this.score / this.totalQuestions) * 100);
   }
-  next();
 });
 
 module.exports = mongoose.model("Score", scoreSchema);

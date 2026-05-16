@@ -20,20 +20,21 @@ const getScores = async (req, res) => {
   }
 };
 
-// 🔥 ADD SCORE
 const addScore = async (req, res) => {
   try {
     const { name, score, totalQuestions } = req.body;
+    const userId = req.user;
 
-    if (!name || score === undefined) {
+    if (score === undefined) {
       return res.status(400).json({
         success: false,
-        message: "Name and score are required",
+        message: "Score is required",
       });
     }
 
     const newScore = await Score.create({
-      name,
+      userId,
+      name: name || "Anonymous",
       score,
       totalQuestions,
     });
@@ -44,6 +45,7 @@ const addScore = async (req, res) => {
       data: newScore,
     });
   } catch (err) {
+    console.error("Score save full error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to save score",

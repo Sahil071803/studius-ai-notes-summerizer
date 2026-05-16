@@ -14,9 +14,14 @@ connectDB();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:4173",
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: allowedOrigins,
   credentials: true
 }));
 
@@ -38,13 +43,17 @@ const summarizeRoute = require("./routes/summarize");
 const quizRoute = require("./routes/quiz");
 const scoresRoute = require("./routes/scores");
 const historyRoute = require("./routes/history");
-const authRoute = require("./routes/auth"); // ✅ IMPORTANT
+const authRoute = require("./routes/auth");
+const uploadRoute = require("./routes/upload");
+const feedbackRoute = require("./routes/feedback");
 
 app.use("/api/summarize", summarizeRoute);
 app.use("/api/quiz", quizRoute);
 app.use("/api/scores", scoresRoute);
 app.use("/api/history", historyRoute);
-app.use("/api/auth", authRoute); // ✅ FIXED
+app.use("/api/auth", authRoute);
+app.use("/api/upload", uploadRoute);
+app.use("/api/feedback", feedbackRoute);
 
 // Health check
 app.get("/", (req, res) => {

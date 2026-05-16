@@ -12,14 +12,14 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedExt = [".txt"];
+  const allowedExt = [".txt", ".pdf", ".docx"];
 
   const ext = path.extname(file.originalname).toLowerCase();
 
   if (allowedExt.includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error("Only .txt files are allowed"), false);
+    cb(new Error("Only .txt, .pdf, and .docx files are allowed"), false);
   }
 };
 

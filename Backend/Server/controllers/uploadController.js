@@ -1,4 +1,5 @@
-const fs = require("fs");
+const fs = require("fs/promises");
+const path = require("path");
 
 const uploadFile = async (req, res) => {
   try {
@@ -10,7 +11,14 @@ const uploadFile = async (req, res) => {
     }
 
     const filePath = req.file.path;
-    const fileContent = fs.readFileSync(filePath, "utf-8");
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    let content = "";
+
+    if (ext === ".txt") {
+      content = await fs.readFile(filePath, "utf-8");
+    } else {
+      content = `[${ext.toUpperCase()} file uploaded: ${req.file.originalname}]`;
+    }
 
     res.status(200).json({
       success: true,
@@ -18,10 +26,10 @@ const uploadFile = async (req, res) => {
       file: {
         originalName: req.file.originalname,
         fileName: req.file.filename,
-        path: req.file.path,
+        path: filePath,
         size: req.file.size,
       },
-      content: fileContent,
+      content,
     });
   } catch (error) {
     console.error("Upload Error:", error.message);

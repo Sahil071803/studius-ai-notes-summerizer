@@ -1,40 +1,23 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api";
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-// 🔹 Summary
-export const summarizeText = (data) => {
-  return axios.post(`${API}/summarize`, data);
-};
+const apiClient = axios.create({ baseURL: API });
 
-// 🔹 Quiz
-export const generateQuiz = (text, difficulty, questionCount) => {
-  return axios.post(`${API}/quiz`, {
-    text,
-    difficulty,
-    questionCount,
-  });
-};
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-// 🔥 SAVE SCORE (MISSING THA)
-export const saveScore = (data) => {
-  return axios.post(`${API}/scores`, data);
-};
-
-// 🔥 GET SCORES
-export const getScores = () => {
-  return axios.get(`${API}/scores`);
-};
-
-// 🔥 History
-export const getHistory = () => {
-  return axios.get(`${API}/history`);
-};
-
-export const deleteHistory = (id) => {
-  return axios.delete(`${API}/history/${id}`);
-};
-
-export const updateHistory = (id, data) => {
-  return axios.put(`${API}/history/${id}`, data);
-};
+export const summarizeText = (data) => apiClient.post("/summarize", data);
+export const generateQuiz = (text, difficulty, questionCount) =>
+  apiClient.post("/quiz", { text, difficulty, questionCount });
+export const saveScore = (data) => apiClient.post("/scores", data);
+export const getScores = () => apiClient.get("/scores");
+export const getHistory = (page = 1, limit = 10) =>
+  apiClient.get(`/history?page=${page}&limit=${limit}`);
+export const deleteHistory = (id) => apiClient.delete(`/history/${id}`);
+export const updateHistory = (id, data) => apiClient.put(`/history/${id}`, data);

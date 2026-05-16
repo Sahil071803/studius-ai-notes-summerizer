@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const protect = require("../middleware/authMiddleware");
 
 const {
   getHistory,
@@ -7,13 +8,8 @@ const {
   updateHistory,
 } = require("../controllers/historyController");
 
-// ✅ GET
-router.get("/", getHistory);
-
-// ✅ DELETE
-router.delete("/:id", deleteHistory);
-
-// 🔥 UPDATE
-router.put("/:id", updateHistory);
+router.get("/", protect, getHistory);
+router.delete("/:id", protect, deleteHistory);
+router.put("/:id", protect, updateHistory);
 
 module.exports = router;

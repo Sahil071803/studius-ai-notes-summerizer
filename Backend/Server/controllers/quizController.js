@@ -80,8 +80,8 @@ ${text}
     // 🔥 FORCE LIMIT (AI kabhi zyada de deta hai)
     quiz = quiz.slice(0, count);
 
-    // 💾 Save
     await History.create({
+      userId: req.user,
       text,
       quiz,
       type: "quiz",
