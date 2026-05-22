@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getHistory, deleteHistory, updateHistory } from "../services/api";
 
 import {
   Container, Typography, Card, CardContent, CircularProgress, Button, Stack,
-  TextField, Pagination, Box, Chip, IconButton,
+  TextField, Pagination, Box, Chip, IconButton, Tooltip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import CloseIcon from "@mui/icons-material/Close";
 import SearchIcon from "@mui/icons-material/Search";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
 function History() {
+  const navigate = useNavigate();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -60,6 +63,12 @@ function History() {
     fetchHistory(page);
   };
 
+  const openInHome = (item) => {
+    const data = { text: item.text, summary: item.summary || "", points: item.points || [], quiz: item.quiz || [], type: item.type || "summary" };
+    if (item.quiz) data.quiz = item.quiz;
+    navigate("/", { state: data });
+  };
+
   const filtered = history.filter((item) =>
     item.text?.toLowerCase().includes(search.toLowerCase())
   );
@@ -94,7 +103,7 @@ function History() {
       ) : (
         <Stack spacing={2}>
           {filtered.map((item) => (
-            <Card key={item._id} sx={{ borderRadius: 4 }}>
+            <Card key={item._id} sx={{ borderRadius: 4, transition: "0.2s", "&:hover": { borderColor: "#7c3aed" } }}>
               <CardContent>
                 <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                   <Chip
@@ -183,18 +192,15 @@ function History() {
                         : item.summary}
                     </Typography>
                     <Stack direction="row" spacing={1}>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleEdit(item)}
-                        sx={{ color: "#7c3aed" }}
-                      >
+                      <Tooltip title="Open in Home">
+                        <IconButton size="small" onClick={() => openInHome(item)} sx={{ color: "#7c3aed" }}>
+                          <OpenInNewIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <IconButton size="small" onClick={() => handleEdit(item)} sx={{ color: "#7c3aed" }}>
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleDelete(item._id)}
-                        sx={{ color: "#ef4444" }}
-                      >
+                      <IconButton size="small" onClick={() => handleDelete(item._id)} sx={{ color: "#ef4444" }}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Stack>

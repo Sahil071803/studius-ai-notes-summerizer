@@ -5,6 +5,7 @@ import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import History from "./pages/History";
+import Leaderboard from "./pages/Leaderboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AppHeader from "./components/AppHeader";
@@ -100,6 +101,7 @@ function AppContent() {
         <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+        <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>
