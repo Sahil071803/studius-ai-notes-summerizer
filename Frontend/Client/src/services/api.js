@@ -23,3 +23,5 @@ export const deleteHistory = (id) => apiClient.delete(`/history/${id}`);
 export const updateHistory = (id, data) => apiClient.put(`/history/${id}`, data);
 export const getProfile = () => apiClient.get("/auth/me");
 export const updateProfile = (data) => apiClient.put("/auth/me", data);
+export const changePassword = (data) => apiClient.put("/auth/password", data);
+export const deleteAccount = () => apiClient.delete("/auth/me");

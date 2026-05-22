@@ -23,9 +23,13 @@ function AppContent() {
     return localStorage.getItem("studius-theme") === "dark";
   });
 
+  const [fontSize] = useState(() => localStorage.getItem("studius-fontsize") || "medium");
+
   useEffect(() => {
     localStorage.setItem("studius-theme", darkMode ? "dark" : "light");
   }, [darkMode]);
+
+  const htmlFontSize = fontSize === "small" ? 14 : fontSize === "large" ? 17 : 16;
 
   const theme = useMemo(
     () =>
@@ -52,6 +56,7 @@ function AppContent() {
         shape: { borderRadius: 16 },
         typography: {
           fontFamily: '"Inter", system-ui, -apple-system, sans-serif',
+          htmlFontSize,
           h4: { fontWeight: 700 },
           h5: { fontWeight: 600 },
           h6: { fontWeight: 600 },
@@ -88,7 +93,7 @@ function AppContent() {
           },
         },
       }),
-    [darkMode]
+    [darkMode, fontSize]
   );
 
   const [feedbackOpen, setFeedbackOpen] = useState(false);

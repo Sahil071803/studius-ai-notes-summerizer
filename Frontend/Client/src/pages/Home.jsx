@@ -26,7 +26,7 @@ function Home() {
   const [difficulty, setDifficulty] = useState(() => localStorage.getItem("studius-default-difficulty") || "easy");
   const [questionCount, setQuestionCount] = useState(() => Number(localStorage.getItem("studius-default-count")) || 5);
   const [timerEnabled, setTimerEnabled] = useState(() => localStorage.getItem("studius-default-timer") !== "off");
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(() => Number(localStorage.getItem("studius-default-tab")) || 0);
   const [error, setError] = useState("");
   const [copiedIdx, setCopiedIdx] = useState(null);
   const hasLoadedState = useRef(false);
