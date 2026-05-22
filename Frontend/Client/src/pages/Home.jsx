@@ -47,7 +47,7 @@ function Home() {
     }
   }, [location.state]);
 
-  const maxWords = 500;
+  const maxWords = 15000;
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const isOverLimit = wordCount > maxWords;
 
