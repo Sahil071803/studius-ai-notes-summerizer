@@ -15,10 +15,12 @@ function extractVideoId(url) {
   return null;
 }
 
-async function getTranscript(videoId) {
-  const { YoutubeTranscript } = await import("youtube-transcript");
-  const segments = await YoutubeTranscript.fetchTranscript(videoId);
-  return segments.map((s) => s.text).join(" ");
+const { YoutubeTranscript } = require("youtube-transcript");
+
+function getTranscript(videoId) {
+  return YoutubeTranscript.fetchTranscript(videoId).then((segments) =>
+    segments.map((s) => s.text).join(" ")
+  );
 }
 
 const summarizeText = async (req, res, next) => {
