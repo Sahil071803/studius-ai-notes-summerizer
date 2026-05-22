@@ -21,3 +21,5 @@ export const getHistory = (page = 1, limit = 10) =>
   apiClient.get(`/history?page=${page}&limit=${limit}`);
 export const deleteHistory = (id) => apiClient.delete(`/history/${id}`);
 export const updateHistory = (id, data) => apiClient.put(`/history/${id}`, data);
+export const getProfile = () => apiClient.get("/auth/me");
+export const updateProfile = (data) => apiClient.put("/auth/me", data);
