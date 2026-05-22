@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { getProfile, updateProfile } from "../services/api";
 import {
   Container, Card, CardContent, Typography, TextField, Button, Avatar,
-  Box, CircularProgress, Alert, Divider, Switch, FormControlLabel,
+  Box, CircularProgress, Alert, Switch, FormControlLabel, MenuItem, Stack,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SaveIcon from "@mui/icons-material/Save";
+import QuizIcon from "@mui/icons-material/Quiz";
 
 function Profile({ darkMode, setDarkMode }) {
   const navigate = useNavigate();
@@ -17,6 +18,10 @@ function Profile({ darkMode, setDarkMode }) {
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+
+  const [quizDifficulty, setQuizDifficulty] = useState(() => localStorage.getItem("studius-default-difficulty") || "easy");
+  const [quizCount, setQuizCount] = useState(() => Number(localStorage.getItem("studius-default-count")) || 5);
+  const [quizTimer, setQuizTimer] = useState(() => localStorage.getItem("studius-default-timer") !== "off");
 
   useEffect(() => {
     const fetch = async () => {
@@ -106,6 +111,33 @@ function Profile({ darkMode, setDarkMode }) {
           <FormControlLabel control={
             <Switch checked={darkMode} onChange={(e) => setDarkMode(e.target.checked)} />
           } label="Dark Mode" />
+        </CardContent>
+      </Card>
+
+      <Card sx={{ borderRadius: 4, mb: 3 }}>
+        <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+          <Typography variant="h6" fontWeight={600} mb={2} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <QuizIcon sx={{ color: "#7c3aed" }} /> Quiz Defaults
+          </Typography>
+          <Stack spacing={2}>
+            <TextField select label="Difficulty" value={quizDifficulty}
+              onChange={(e) => { setQuizDifficulty(e.target.value); localStorage.setItem("studius-default-difficulty", e.target.value); }}
+              size="small"
+            >
+              {["easy", "medium", "hard"].map((d) => (
+                <MenuItem key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</MenuItem>
+              ))}
+            </TextField>
+            <TextField select label="Questions" value={quizCount}
+              onChange={(e) => { setQuizCount(Number(e.target.value)); localStorage.setItem("studius-default-count", e.target.value); }}
+              size="small"
+            >
+              {[5, 10, 15, 20].map((n) => (<MenuItem key={n} value={n}>{n} questions</MenuItem>))}
+            </TextField>
+            <FormControlLabel control={
+              <Switch checked={quizTimer} onChange={(e) => { setQuizTimer(e.target.checked); localStorage.setItem("studius-default-timer", e.target.checked ? "on" : "off"); }} />
+            } label="Timer On By Default" />
+          </Stack>
         </CardContent>
       </Card>
 
