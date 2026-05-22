@@ -1,13 +1,16 @@
 import { useState } from "react";
-import { TextField, Button, Typography, Paper, Box, Alert, CircularProgress } from "@mui/material";
+import { TextField, Button, Typography, Paper, Box, Alert, CircularProgress, IconButton, InputAdornment } from "@mui/material";
 import { Link } from "react-router-dom";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { loginUser } from "../services/authService";
 
 function LoginForm() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,6 +20,7 @@ function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.email || !form.password) { setError("All fields are required"); return; }
+    if (form.password.length < 6) { setError("Password must be at least 6 characters"); return; }
 
     setLoading(true);
     setError("");
@@ -72,12 +76,24 @@ function LoginForm() {
         <TextField
           fullWidth label="Email" name="email" type="email" margin="normal"
           value={form.email} onChange={handleChange} autoFocus
-          disabled={loading}
+          disabled={loading} autoComplete="email"
         />
         <TextField
-          fullWidth label="Password" name="password" type="password" margin="normal"
+          fullWidth label="Password" name="password"
+          type={showPassword ? "text" : "password"} margin="normal"
           value={form.password} onChange={handleChange}
-          disabled={loading}
+          disabled={loading} autoComplete="current-password"
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" tabIndex={-1}>
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
         />
 
         <Button
