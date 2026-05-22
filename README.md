@@ -1,6 +1,6 @@
-# 🚀 MindForge AI Notes Summarizer
+# 🚀 studius AI Notes Summarizer
 
-MindForge AI is a modern **AI-powered notes productivity web app** that converts raw study material into **structured summaries, key points, and quizzes** with a clean and minimal UI.
+studius AI is a modern **AI-powered notes productivity web app** that converts raw study material into **structured summaries, key points, and quizzes** with a clean and minimal UI.
 
 ---
 
