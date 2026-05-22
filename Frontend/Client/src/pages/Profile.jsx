@@ -69,7 +69,7 @@ function Profile({ darkMode, setDarkMode }) {
   return (
     <Container maxWidth="sm" sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 5 } }}>
       <Typography variant="h4" fontWeight={800} mb={{ xs: 2, md: 4 }} sx={{ fontSize: { xs: "1.5rem", sm: "2rem" } }}>
-        Profile & Settings
+        Settings
       </Typography>
 
       <Card sx={{ borderRadius: 4, mb: 3 }}>

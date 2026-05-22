@@ -103,7 +103,7 @@ function AppContent() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
         <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile darkMode={darkMode} setDarkMode={setDarkMode} /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><Profile darkMode={darkMode} setDarkMode={setDarkMode} /></ProtectedRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>

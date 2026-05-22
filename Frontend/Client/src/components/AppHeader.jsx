@@ -33,7 +33,7 @@ function AppHeader({ darkMode, setDarkMode }) {
     { label: "Dashboard", path: "/dashboard" },
     { label: "History", path: "/history" },
     { label: "Leaderboard", path: "/leaderboard" },
-    { label: "Profile", path: "/profile" },
+    { label: "Settings", path: "/settings" },
   ];
 
   return (
