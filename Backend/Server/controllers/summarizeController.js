@@ -50,9 +50,15 @@ const summarizeText = async (req, res, next) => {
       try {
         transcriptText = await getTranscript(videoId);
       } catch (err) {
+        const msg = err.message || "";
+        const userMsg = msg.includes("disabled")
+          ? "This video has captions disabled. Try a video that has captions/subtitles enabled."
+          : msg.includes("unavailable")
+          ? "This video is unavailable or private."
+          : "Could not fetch transcript: " + msg;
         return res.status(400).json({
           success: false,
-          message: "Could not fetch transcript: " + err.message,
+          message: userMsg,
         });
       }
       if (!transcriptText.trim()) {
