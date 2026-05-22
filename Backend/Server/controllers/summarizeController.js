@@ -32,7 +32,7 @@ const summarizeText = async (req, res, next) => {
     if (!inputText.trim() && !youtube) {
       return res.status(400).json({
         success: false,
-        error: "Text or YouTube URL required",
+        message: "Text or YouTube URL required",
       });
     }
 
@@ -44,21 +44,21 @@ const summarizeText = async (req, res, next) => {
       if (!videoId) {
         return res.status(400).json({
           success: false,
-          error: "Invalid YouTube URL",
+          message: "Invalid YouTube URL",
         });
       }
       try {
         transcriptText = await getTranscript(videoId);
-      } catch {
+      } catch (err) {
         return res.status(400).json({
           success: false,
-          error: "Could not fetch transcript for this video (may not have captions)",
+          message: "Could not fetch transcript: " + err.message,
         });
       }
       if (!transcriptText.trim()) {
         return res.status(400).json({
           success: false,
-          error: "No transcript found for this video",
+          message: "No transcript found for this video",
         });
       }
       const truncated = transcriptText.slice(0, 8000);
