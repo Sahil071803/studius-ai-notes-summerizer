@@ -14,7 +14,6 @@ import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import QuizIcon from "@mui/icons-material/Quiz";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import YouTubeIcon from "@mui/icons-material/YouTube";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
 function Home() {
@@ -29,8 +28,6 @@ function Home() {
   const [timerEnabled, setTimerEnabled] = useState(true);
   const [tab, setTab] = useState(0);
   const [error, setError] = useState("");
-  const [inputMode, setInputMode] = useState("text");
-  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [copiedIdx, setCopiedIdx] = useState(null);
   const hasLoadedState = useRef(false);
 
@@ -61,15 +58,9 @@ function Home() {
     setText(trimmed);
   };
 
-  const getEffectiveText = () => {
-    if (inputMode === "youtube") return youtubeUrl.trim();
-    return text.trim();
-  };
-
   const handleAction = async (type) => {
-    const effectiveText = getEffectiveText();
-    if (!effectiveText) { setError("Please enter or upload notes"); return; }
-    if (inputMode !== "youtube" && isOverLimit) { setError(`Text exceeds ${maxWords} words`); return; }
+    if (!text.trim()) { setError("Please enter or upload notes"); return; }
+    if (isOverLimit) { setError(`Text exceeds ${maxWords} words`); return; }
 
     setLoading(true);
     setError("");
@@ -78,7 +69,7 @@ function Home() {
     setQuiz([]);
 
     try {
-      const body = inputMode === "youtube" ? { youtube: effectiveText } : { text: effectiveText };
+      const body = { text: text.trim() };
 
       if (type === "summary") {
         const res = await summarizeText(body);
@@ -91,7 +82,7 @@ function Home() {
         setPoints(bullets);
       }
       if (type === "quiz") {
-        const res = await generateQuiz(effectiveText, difficulty, questionCount);
+        const res = await generateQuiz(text.trim(), difficulty, questionCount);
         setQuiz(res.data.quiz || []);
       }
     } catch (err) {
@@ -134,55 +125,24 @@ function Home() {
         p: { xs: 1.5, sm: 3 }, borderRadius: 4, bgcolor: "background.paper",
         border: "1px solid", borderColor: "divider",
       }}>
-        <Stack direction="row" spacing={1} mb={2}>
-          <Button size="small" variant={inputMode === "text" ? "contained" : "outlined"}
-            onClick={() => setInputMode("text")}
-            sx={{ textTransform: "none", fontSize: "13px" }}
-          >
-            Text Input
-          </Button>
-          <Button size="small" variant={inputMode === "youtube" ? "contained" : "outlined"}
-            onClick={() => setInputMode("youtube")}
-            startIcon={<YouTubeIcon />}
-            sx={{ textTransform: "none", fontSize: "13px" }}
-          >
-            YouTube URL
-          </Button>
-        </Stack>
-
-        {inputMode === "text" ? (
-          <>
-            <TextField
-              fullWidth multiline
-              rows={5}
-              placeholder="Start writing or paste your notes here..."
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onPaste={handlePaste}
-              sx={{
-                "& textarea": { fontSize: "15px", lineHeight: "1.7" },
-                "& fieldset": { border: "none" },
-              }}
-            />
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1, flexWrap: "wrap", gap: 1 }}>
-              <Chip label={`${wordCount} / ${maxWords} words`} size="small"
-                color={isOverLimit ? "error" : wordCount > 200 ? "warning" : "default"} variant="outlined"
-              />
-              <FileUpload setText={setText} />
-            </Box>
-          </>
-        ) : (
-          <TextField
-            fullWidth
-            placeholder="Paste YouTube video URL here..."
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            sx={{
-              "& input": { fontSize: "15px" },
-              "& fieldset": { border: "none" },
-            }}
+        <TextField
+          fullWidth multiline
+          rows={5}
+          placeholder="Start writing or paste your notes here..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onPaste={handlePaste}
+          sx={{
+            "& textarea": { fontSize: "15px", lineHeight: "1.7" },
+            "& fieldset": { border: "none" },
+          }}
+        />
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1, flexWrap: "wrap", gap: 1 }}>
+          <Chip label={`${wordCount} / ${maxWords} words`} size="small"
+            color={isOverLimit ? "error" : wordCount > 200 ? "warning" : "default"} variant="outlined"
           />
-        )}
+          <FileUpload setText={setText} />
+        </Box>
       </Box>
 
       <Tabs value={tab} onChange={(e, v) => setTab(v)}
@@ -220,7 +180,7 @@ function Home() {
       <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
         {tab === 0 && (
           <Button variant="contained" onClick={() => handleAction("summary")}
-            disabled={!getEffectiveText() || loading} startIcon={summary ? <RefreshIcon /> : <AutoAwesomeIcon />}
+            disabled={!text.trim() || loading} startIcon={summary ? <RefreshIcon /> : <AutoAwesomeIcon />}
             sx={{ px: { xs: 2, sm: 4 }, py: { xs: 1, sm: 1.5 }, width: { xs: "100%", sm: "auto" }, bgcolor: "#7c3aed", "&:hover": { bgcolor: "#6d28d9" } }}
           >
             {loading ? "Generating..." : summary ? "Regenerate Summary" : "Generate Summary"}
@@ -228,7 +188,7 @@ function Home() {
         )}
         {tab === 1 && (
           <Button variant="outlined" onClick={() => handleAction("points")}
-            disabled={!getEffectiveText() || loading} startIcon={points.length ? <RefreshIcon /> : <FormatListBulletedIcon />}
+            disabled={!text.trim() || loading} startIcon={points.length ? <RefreshIcon /> : <FormatListBulletedIcon />}
             sx={{ px: { xs: 2, sm: 4 }, py: { xs: 1, sm: 1.5 }, width: { xs: "100%", sm: "auto" }, borderColor: "#7c3aed", color: "#7c3aed" }}
           >
             {loading ? "Extracting..." : points.length ? "Regenerate Points" : "Extract Key Points"}
@@ -236,7 +196,7 @@ function Home() {
         )}
         {tab === 2 && (
           <Button variant="contained" onClick={() => handleAction("quiz")}
-            disabled={!getEffectiveText() || loading} startIcon={quiz.length ? <RefreshIcon /> : <QuizIcon />}
+            disabled={!text.trim() || loading} startIcon={quiz.length ? <RefreshIcon /> : <QuizIcon />}
             sx={{ px: { xs: 2, sm: 4 }, py: { xs: 1, sm: 1.5 }, width: { xs: "100%", sm: "auto" }, bgcolor: "#059669", "&:hover": { bgcolor: "#047857" } }}
           >
             {loading ? "Generating..." : quiz.length ? "Regenerate Quiz" : "Generate Quiz"}
