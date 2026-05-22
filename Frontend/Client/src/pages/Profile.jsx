@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getProfile, updateProfile, changePassword, deleteAccount } from "../services/api";
 import {
   Container, Card, CardContent, Typography, TextField, Button, Avatar,
-  Box, CircularProgress, Alert, Switch, FormControlLabel, MenuItem, Stack, Dialog, DialogTitle, DialogContent, DialogActions,
+  Box, CircularProgress, Alert, Switch, FormControlLabel, MenuItem, Stack, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, InputAdornment,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -13,8 +13,8 @@ import QuizIcon from "@mui/icons-material/Quiz";
 import LockIcon from "@mui/icons-material/Lock";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import TabIcon from "@mui/icons-material/Tab";
-import HistoryIcon from "@mui/icons-material/History";
-import TextFieldsIcon from "@mui/icons-material/TextFields";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 function Profile({ darkMode, setDarkMode }) {
   const navigate = useNavigate();
@@ -35,6 +35,8 @@ function Profile({ darkMode, setDarkMode }) {
   const [newPassword, setNewPassword] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
   const [pwMessage, setPwMessage] = useState("");
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
@@ -158,11 +160,35 @@ function Profile({ darkMode, setDarkMode }) {
           <Typography variant="h6" fontWeight={600} mb={2} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <LockIcon sx={{ color: "#7c3aed" }} /> Change Password
           </Typography>
-          <TextField fullWidth label="Current Password" type="password" value={currentPassword}
+          <TextField fullWidth label="Current Password"
+            type={showCurrent ? "text" : "password"} value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)} size="small" sx={{ mb: 2 }}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowCurrent(!showCurrent)} edge="end" tabIndex={-1}>
+                      {showCurrent ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
-          <TextField fullWidth label="New Password" type="password" value={newPassword}
+          <TextField fullWidth label="New Password"
+            type={showNew ? "text" : "password"} value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)} size="small" sx={{ mb: 2 }}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowNew(!showNew)} edge="end" tabIndex={-1}>
+                      {showNew ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
           />
           <Button variant="contained" startIcon={<LockIcon />} onClick={handleChangePassword}
             disabled={!currentPassword || !newPassword || pwSaving}
