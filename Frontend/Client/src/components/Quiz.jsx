@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Card, CardContent, Typography, Button, Box, LinearProgress, Chip, Alert,
 } from "@mui/material";
 import { saveScore } from "../services/api";
+import UsageChip from "./UsageChip";
 
-export default function Quiz({ quiz = [], timerEnabled = true }) {
+export default function Quiz({ quiz = [], timerEnabled = true, usage = null }) {
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState({});
   const [score, setScore] = useState(null);
@@ -13,28 +14,6 @@ export default function Quiz({ quiz = [], timerEnabled = true }) {
   const [time, setTime] = useState(15);
 
   const currentQ = quiz[current];
-
-  useEffect(() => {
-    if (!timerEnabled || submitted) return;
-    if (time === 0) { handleNext(); return; }
-    const timer = setTimeout(() => setTime((p) => p - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [time, submitted, timerEnabled]);
-
-  useEffect(() => { if (timerEnabled) setTime(15); }, [current, timerEnabled]);
-
-  const select = (idx) => {
-    if (submitted) return;
-    setSelected((prev) => ({ ...prev, [current]: idx }));
-  };
-
-  const handleNext = () => {
-    if (current < quiz.length - 1) {
-      setCurrent((prev) => prev + 1);
-    } else {
-      submitQuiz();
-    }
-  };
 
   const submitQuiz = async () => {
     let s = 0;
@@ -55,6 +34,36 @@ export default function Quiz({ quiz = [], timerEnabled = true }) {
     }
   };
 
+  const handleNext = () => {
+    if (current < quiz.length - 1) {
+      setCurrent((prev) => prev + 1);
+      if (timerEnabled) setTime(15);
+    } else {
+      submitQuiz();
+    }
+  };
+
+  const nextRef = useRef(null);
+
+  useEffect(() => {
+    nextRef.current = handleNext;
+  });
+
+  useEffect(() => {
+    if (!timerEnabled || submitted) return;
+    if (time === 0) {
+      const advance = setTimeout(() => nextRef.current?.(), 0);
+      return () => clearTimeout(advance);
+    }
+    const timer = setTimeout(() => setTime((p) => p - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [time, submitted, timerEnabled]);
+
+  const select = (idx) => {
+    if (submitted) return;
+    setSelected((prev) => ({ ...prev, [current]: idx }));
+  };
+
   if (!quiz.length) return null;
 
   if (submitted) {
@@ -70,6 +79,11 @@ export default function Quiz({ quiz = [], timerEnabled = true }) {
           <Chip label={pct >= 80 ? "Excellent!" : pct >= 60 ? "Good Job!" : "Keep Practicing!"}
             color={pct >= 60 ? "success" : "error"} sx={{ mt: 2, fontWeight: 600 }}
           />
+          {usage && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <UsageChip usage={usage} />
+            </Box>
+          )}
         </Card>
       </Box>
     );

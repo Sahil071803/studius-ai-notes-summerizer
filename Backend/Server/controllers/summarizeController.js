@@ -1,5 +1,5 @@
-const axios = require("axios");
 const History = require("../models/History");
+const { chat } = require("../services/aiService");
 
 function extractVideoId(url) {
   const patterns = [
@@ -77,40 +77,30 @@ const summarizeText = async (req, res, next) => {
       prompt = `Summarize this text clearly:\n${inputText}`;
     }
 
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: "openai/gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:5000",
-          "X-Title": "AI Notes",
-        },
-      }
-    );
+    const { content: summary, usage } = await chat(prompt);
 
-    const summary =
-      response?.data?.choices?.[0]?.message?.content ||
-      "No summary generated";
+    if (!summary) {
+      return res.status(502).json({
+        success: false,
+        message: "The AI returned an empty response. Please try again.",
+      });
+    }
 
     await History.create({
       userId: req.user,
       text: youtube || inputText,
       summary,
       type: "summary",
+      usage: usage || undefined,
     });
 
     res.json({
       success: true,
       summary,
+      usage,
     });
 
   } catch (err) {
-    console.error("🔥 Summarize Error:", err.message);
     next(err);
   }
 };

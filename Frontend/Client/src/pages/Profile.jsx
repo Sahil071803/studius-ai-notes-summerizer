@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getProfile, updateProfile, changePassword, deleteAccount } from "../services/api";
 import {
   Container, Card, CardContent, Typography, TextField, Button, Avatar,
-  Box, CircularProgress, Alert, Switch, FormControlLabel, MenuItem, Stack, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, InputAdornment,
+  CircularProgress, Alert, Switch, FormControlLabel, MenuItem, Stack, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, InputAdornment,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import DarkModeIcon from "@mui/icons-material/DarkMode";

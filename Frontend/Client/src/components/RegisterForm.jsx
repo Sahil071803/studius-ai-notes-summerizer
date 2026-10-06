@@ -27,8 +27,20 @@ function RegisterForm() {
     setError("");
 
     try {
-      await registerUser(form);
-      navigate("/login", { replace: true });
+      const res = await registerUser(form);
+
+      if (res.data?.token) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem(
+          "user",
+          JSON.stringify(
+            res.data.user || { name: form.name, email: form.email }
+          )
+        );
+        window.location.href = "/";
+      } else {
+        navigate("/login", { replace: true });
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Try again.");
     } finally {

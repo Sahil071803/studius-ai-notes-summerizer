@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { summarizeText, generateQuiz } from "../services/api";
 import Summary from "../components/Summary";
 import Quiz from "../components/Quiz";
 import Loader from "../components/Loader";
 import FileUpload from "../components/FileUpload";
+import UsageChip from "../components/UsageChip";
 
 import {
   Container, TextField, Button, Stack, Typography, MenuItem, Tabs, Tab, Alert, Box, Chip, Switch, FormControlLabel,
@@ -12,37 +13,39 @@ import {
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
 import QuizIcon from "@mui/icons-material/Quiz";
+import EditNoteIcon from "@mui/icons-material/EditNote";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
 function Home() {
   const location = useLocation();
-  const [text, setText] = useState("");
-  const [summary, setSummary] = useState("");
-  const [points, setPoints] = useState([]);
-  const [quiz, setQuiz] = useState([]);
+  const [navState] = useState(() => location.state);
+
+  const initialTab = Number(localStorage.getItem("studius-default-tab")) || 0;
+  const tabFromNav =
+    navState?.type === "quiz" ? 2 : navState?.type === "points" ? 1 : null;
+
+  const [text, setText] = useState(() => navState?.text || "");
+  const [summary, setSummary] = useState(() =>
+    navState?.summary && navState.type !== "quiz" ? navState.summary : ""
+  );
+  const [points, setPoints] = useState(() => navState?.points || []);
+  const [quiz, setQuiz] = useState(() => navState?.quiz || []);
   const [loading, setLoading] = useState(false);
   const [difficulty, setDifficulty] = useState(() => localStorage.getItem("studius-default-difficulty") || "easy");
   const [questionCount, setQuestionCount] = useState(() => Number(localStorage.getItem("studius-default-count")) || 5);
   const [timerEnabled, setTimerEnabled] = useState(() => localStorage.getItem("studius-default-timer") !== "off");
-  const [tab, setTab] = useState(() => Number(localStorage.getItem("studius-default-tab")) || 0);
+  const [tab, setTab] = useState(() => tabFromNav ?? initialTab);
   const [error, setError] = useState("");
+  const [usage, setUsage] = useState(null);
   const [copiedIdx, setCopiedIdx] = useState(null);
-  const hasLoadedState = useRef(false);
+  const [customPrompt, setCustomPrompt] = useState("");
+  const [notice, setNotice] = useState("");
+  const [customQuiz, setCustomQuiz] = useState([]);
 
   useEffect(() => {
-    if (hasLoadedState.current) return;
-    const state = location.state;
-    if (state?.text) {
-      setText(state.text);
-      if (state.summary && state.type !== "quiz") setSummary(state.summary || "");
-      if (state.points) setPoints(state.points || []);
-      if (state.quiz) setQuiz(state.quiz || []);
-      if (state.type === "quiz") setTab(2);
-      else if (state.type === "points") setTab(1);
-      else setTab(0);
-      hasLoadedState.current = true;
+    if (location.state) {
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -67,6 +70,7 @@ function Home() {
     setSummary("");
     setPoints([]);
     setQuiz([]);
+    setUsage(null);
 
     try {
       const body = { text: text.trim() };
@@ -74,16 +78,57 @@ function Home() {
       if (type === "summary") {
         const res = await summarizeText(body);
         setSummary(res.data.summary);
+        setUsage(res.data.usage || null);
       }
       if (type === "points") {
         const res = await summarizeText({ ...body, type: "points" });
         const raw = res.data.summary || "";
         const bullets = raw.split("\n").map((p) => p.replace(/^[-•*\d.]+ */, "").trim()).filter(Boolean);
         setPoints(bullets);
+        setUsage(res.data.usage || null);
       }
       if (type === "quiz") {
         const res = await generateQuiz(text.trim(), difficulty, questionCount);
         setQuiz(res.data.quiz || []);
+        setUsage(res.data.usage || null);
+        if (res.data.partial) {
+          setError(`AI returned only ${res.data.quiz.length} of ${res.data.requested} valid questions.`);
+        }
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong");
+    }
+    setLoading(false);
+  };
+
+  const handleCustomPrompt = async () => {
+    if (!customPrompt.trim()) {
+      setError("Please paste a prompt first");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setCustomQuiz([]);
+    setUsage(null);
+    setNotice("");
+
+    try {
+      const res = await generateQuiz(
+        customPrompt.trim(),
+        difficulty,
+        questionCount,
+        true
+      );
+      setCustomQuiz(res.data.quiz || []);
+      setUsage(res.data.usage || null);
+
+      if (res.data.partial) {
+        setError(`AI returned only ${res.data.quiz.length} of ${res.data.requested} valid questions.`);
+      } else if (res.data.countSource === "prompt") {
+        setNotice(`Count taken from your prompt: ${res.data.requested} questions.`);
+      } else {
+        setNotice(`Your prompt had no number, so the fallback count was used: ${res.data.requested} questions.`);
       }
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
@@ -96,7 +141,9 @@ function Home() {
       await navigator.clipboard.writeText(text);
       setCopiedIdx(true);
       setTimeout(() => setCopiedIdx(null), 2000);
-    } catch {}
+    } catch {
+      setCopiedIdx(null);
+    }
   };
 
   const handleExportPoints = () => {
@@ -157,9 +204,10 @@ function Home() {
         <Tab icon={<AutoAwesomeIcon sx={{ fontSize: 16 }} />} iconPosition="start" label="Summary" />
         <Tab icon={<FormatListBulletedIcon sx={{ fontSize: 16 }} />} iconPosition="start" label="Key Points" />
         <Tab icon={<QuizIcon sx={{ fontSize: 16 }} />} iconPosition="start" label="Quiz" />
+        <Tab icon={<EditNoteIcon sx={{ fontSize: 16 }} />} iconPosition="start" label="Custom Prompt" />
       </Tabs>
 
-      {tab === 2 && (
+      {(tab === 2 || tab === 3) && (
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mt={3} sx={{ alignItems: { sm: "center" } }}>
           <TextField select label="Difficulty" value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)} size="small" sx={{ minWidth: 140 }}
@@ -168,8 +216,14 @@ function Home() {
               <MenuItem key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</MenuItem>
             ))}
           </TextField>
-          <TextField select label="Questions" value={questionCount}
-            onChange={(e) => setQuestionCount(Number(e.target.value))} size="small" sx={{ minWidth: 140 }}
+          <TextField
+            select
+            label={tab === 3 ? "Fallback count" : "Questions"}
+            value={questionCount}
+            onChange={(e) => setQuestionCount(Number(e.target.value))}
+            size="small"
+            helperText={tab === 3 ? "used only if your prompt has no number" : ""}
+            sx={{ minWidth: 140 }}
           >
             {[5, 10, 15, 20].map((n) => (<MenuItem key={n} value={n}>{n} questions</MenuItem>))}
           </TextField>
@@ -202,11 +256,43 @@ function Home() {
             {loading ? "Generating..." : quiz.length ? "Regenerate Quiz" : "Generate Quiz"}
           </Button>
         )}
+        {tab === 3 && (
+          <Button variant="contained" onClick={handleCustomPrompt}
+            disabled={!customPrompt.trim() || loading} startIcon={customQuiz.length ? <RefreshIcon /> : <EditNoteIcon />}
+            sx={{ px: { xs: 2, sm: 4 }, py: { xs: 1, sm: 1.5 }, width: { xs: "100%", sm: "auto" }, bgcolor: "#059669", "&:hover": { bgcolor: "#047857" } }}
+          >
+            {loading ? "Generating..." : customQuiz.length ? "Regenerate Quiz" : "Generate Quiz from Prompt"}
+          </Button>
+        )}
       </Box>
 
+      {tab === 3 && (
+        <Box sx={{ mt: 3, p: { xs: 1.5, sm: 3 }, borderRadius: 4, bgcolor: "background.paper", border: "1px solid", borderColor: "divider" }}>
+          <Typography variant="h6" mb={0.5}>Paste your prompt</Typography>
+          <Typography variant="body2" color="text.secondary" mb={2}>
+            Grab a prompt from ChatGPT, Claude or anywhere else — e.g. &ldquo;generate 10 MCQs on photosynthesis&rdquo; — and paste it below.
+          </Typography>
+          <TextField
+            fullWidth multiline rows={5}
+            placeholder="e.g. Create 10 medium-difficulty MCQs about the Krebs cycle with 4 options each"
+            value={customPrompt}
+            onChange={(e) => setCustomPrompt(e.target.value)}
+            sx={{
+              "& textarea": { fontSize: "15px", lineHeight: "1.7" },
+              "& fieldset": { border: "none" },
+            }}
+          />
+        </Box>
+      )}
+
       {error && <Alert severity="error" sx={{ mt: 2, borderRadius: 3 }}>{error}</Alert>}
-      {loading && <Loader message={tab === 2 ? "Generating quiz..." : "Analyzing text..."} />}
-      {tab === 0 && summary && <Summary summary={summary} />}
+      {!error && notice && (
+        <Alert severity="info" sx={{ mt: 2, borderRadius: 3 }}>{notice}</Alert>
+      )}
+      {loading && (
+        <Loader message={tab === 2 || tab === 3 ? "Generating quiz..." : "Analyzing text..."} />
+      )}
+      {tab === 0 && summary && <Summary summary={summary} usage={usage} />}
 
       {tab === 1 && points.length > 0 && (
         <Box sx={{ mt: 2, p: { xs: 1.5, sm: 3 }, borderRadius: 4, bgcolor: "background.paper", border: "1px solid", borderColor: "divider" }}>
@@ -226,6 +312,11 @@ function Home() {
               </Button>
             </Stack>
           </Box>
+          {usage && (
+            <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+              <UsageChip usage={usage} />
+            </Box>
+          )}
           <Stack spacing={1.5}>
             {points.map((p, i) => (
               <Box key={i} sx={{ display: "flex", gap: 1.5, p: 1.5, borderRadius: 2, bgcolor: "action.hover" }}>
@@ -243,7 +334,8 @@ function Home() {
         </Box>
       )}
 
-      {tab === 2 && quiz.length > 0 && <Quiz quiz={quiz} timerEnabled={timerEnabled} />}
+      {tab === 2 && quiz.length > 0 && <Quiz quiz={quiz} timerEnabled={timerEnabled} usage={usage} />}
+      {tab === 3 && customQuiz.length > 0 && <Quiz quiz={customQuiz} timerEnabled={timerEnabled} usage={usage} />}
     </Container>
   );
 }

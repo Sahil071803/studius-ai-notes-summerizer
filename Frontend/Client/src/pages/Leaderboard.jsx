@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  Container, Typography, Card, CardContent, CircularProgress, Box, Table,
+  Container, Typography, Card, CircularProgress, Box, Table,
   TableBody, TableCell, TableContainer, TableHead, TableRow, Chip, Avatar,
 } from "@mui/material";
 import { getScores } from "../services/api";
@@ -33,7 +33,12 @@ function Leaderboard() {
     );
   }
 
-  const sorted = [...scores].sort((a, b) => b.score - a.score || a.totalQuestions - b.totalQuestions);
+  const pctOf = (s) =>
+    s.percentage ?? Math.round(((s.score || 0) / (s.totalQuestions || 10)) * 100);
+
+  const sorted = [...scores].sort(
+    (a, b) => pctOf(b) - pctOf(a) || b.score - a.score
+  );
 
   return (
     <Container sx={{ px: { xs: 1, sm: 2, md: 3 }, py: { xs: 2, sm: 5 } }}>

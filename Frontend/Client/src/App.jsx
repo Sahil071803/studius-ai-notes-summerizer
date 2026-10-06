@@ -93,7 +93,7 @@ function AppContent() {
           },
         },
       }),
-    [darkMode, fontSize]
+    [darkMode, htmlFontSize]
   );
 
   const [feedbackOpen, setFeedbackOpen] = useState(false);

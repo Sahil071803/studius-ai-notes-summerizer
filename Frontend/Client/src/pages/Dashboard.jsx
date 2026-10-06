@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {
   Container, Card, CardContent, Typography, CircularProgress, Box,
 } from "@mui/material";
-import { getScores } from "../services/api";
+import { getMyScores } from "../services/api";
 import ScoreChart from "../components/ScoreChart";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import TimelineIcon from "@mui/icons-material/Timeline";
@@ -16,7 +16,7 @@ function Dashboard() {
   useEffect(() => {
     const fetchScores = async () => {
       try {
-        const res = await getScores();
+        const res = await getMyScores();
         setScores(res.data.data || []);
       } catch (err) {
         console.error(err);
@@ -27,10 +27,28 @@ function Dashboard() {
     fetchScores();
   }, []);
 
+  const pctOf = (s) =>
+    s.percentage ?? Math.round(((s.score || 0) / (s.totalQuestions || 10)) * 100);
+
   const total = scores.length;
-  const avg = total > 0 ? (scores.reduce((a, b) => a + (b.score || 0), 0) / total).toFixed(1) : 0;
-  const lastScore = total > 0 ? scores[scores.length - 1]?.score || 0 : 0;
-  const bestScore = total > 0 ? Math.max(...scores.map((s) => s.score)) : 0;
+  const avg = total > 0
+    ? (scores.reduce((a, b) => a + pctOf(b), 0) / total).toFixed(1)
+    : 0;
+  const lastScore = total > 0 ? scores[0] : null;
+  const bestScore = total > 0 ? Math.max(...scores.map(pctOf)) : 0;
+
+  const stats = [
+    { title: "Total Attempts", value: total, icon: <TimelineIcon />, color: "#7c3aed" },
+    { title: "Average Score", value: `${avg}%`, icon: <TrendingUpIcon />, color: "#06b6d4" },
+    {
+      title: "Last Score",
+      value: lastScore ? `${pctOf(lastScore)}%` : 0,
+      sub: lastScore ? `${lastScore.score}/${lastScore.totalQuestions}` : "",
+      icon: <StarIcon />,
+      color: "#f59e0b",
+    },
+    { title: "Best Score", value: `${bestScore}%`, icon: <EmojiEventsIcon />, color: "#22c55e" },
+  ];
 
   if (loading) {
     return (
@@ -39,13 +57,6 @@ function Dashboard() {
       </Container>
     );
   }
-
-  const stats = [
-    { title: "Total Attempts", value: total, icon: <TimelineIcon />, color: "#7c3aed" },
-    { title: "Average Score", value: avg, icon: <TrendingUpIcon />, color: "#06b6d4" },
-    { title: "Last Score", value: lastScore, icon: <StarIcon />, color: "#f59e0b" },
-    { title: "Best Score", value: bestScore, icon: <EmojiEventsIcon />, color: "#22c55e" },
-  ];
 
   return (
     <Container sx={{ py: 5 }}>
@@ -62,12 +73,17 @@ function Dashboard() {
                 <Typography color="text.secondary" variant="body2">{stat.title}</Typography>
               </Box>
               <Typography variant="h4" fontWeight={800} sx={{ color: stat.color }}>{stat.value}</Typography>
+              {stat.sub && (
+                <Typography variant="caption" color="text.secondary">
+                  {stat.sub}
+                </Typography>
+              )}
             </CardContent>
           </Card>
         ))}
       </Box>
 
-      {scores.length > 0 && <ScoreChart scores={scores} />}
+      {scores.length > 0 && <ScoreChart scores={[...scores].reverse()} />}
 
       {scores.length === 0 && (
         <Card sx={{ mt: 4, p: 4, textAlign: "center", borderRadius: 4 }}>

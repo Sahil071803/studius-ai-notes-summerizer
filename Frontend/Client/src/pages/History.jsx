@@ -26,7 +26,6 @@ function History() {
   const itemsPerPage = 5;
 
   const fetchHistory = async (p = 1) => {
-    setLoading(true);
     try {
       const res = await getHistory(p, itemsPerPage);
       setHistory(res.data.data || []);
@@ -37,10 +36,29 @@ function History() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchHistory(page); }, [page]);
+  useEffect(() => {
+    let active = true;
+    getHistory(page, itemsPerPage)
+      .then((res) => {
+        if (!active) return;
+        setHistory(res.data.data || []);
+        setTotalPages(res.data.pages || 1);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, [page]);
+
+  const handlePageChange = (val) => {
+    setLoading(true);
+    setPage(val);
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this item?")) return;
+    setLoading(true);
     await deleteHistory(id);
     fetchHistory(page);
   };
@@ -216,7 +234,7 @@ function History() {
         <Pagination
           count={totalPages}
           page={page}
-          onChange={(e, val) => setPage(val)}
+          onChange={(e, val) => handlePageChange(val)}
           sx={{ mt: 4, display: "flex", justifyContent: "center" }}
           color="primary"
         />

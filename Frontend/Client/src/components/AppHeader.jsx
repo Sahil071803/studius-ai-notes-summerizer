@@ -15,7 +15,7 @@ function AppHeader({ darkMode, setDarkMode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const userData = localStorage.getItem("user");
-  let user = null;
+  let user;
   try { user = userData ? JSON.parse(userData) : null; } catch { user = null; }
 
   const displayName = user?.name || user?.email?.split("@")[0] || "User";

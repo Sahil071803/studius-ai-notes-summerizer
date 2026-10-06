@@ -3,8 +3,9 @@ import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { useState } from "react";
+import UsageChip from "./UsageChip";
 
-function Summary({ summary }) {
+function Summary({ summary, usage }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -12,7 +13,9 @@ function Summary({ summary }) {
       await navigator.clipboard.writeText(summary);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {}
+    } catch {
+      setCopied(false);
+    }
   };
 
   const handleExport = () => {
@@ -60,6 +63,11 @@ function Summary({ summary }) {
       >
         {summary}
       </Typography>
+      {usage && (
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
+          <UsageChip usage={usage} />
+        </Box>
+      )}
     </Paper>
   );
 }
